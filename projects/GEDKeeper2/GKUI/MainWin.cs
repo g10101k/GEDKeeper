@@ -65,7 +65,7 @@ namespace GKUI
         private string fLogFilename;
 
         private int fLoadingCount;
-        private readonly StringList fBirthDays;
+        private readonly StringList fTips;
 
         private static MainWin fInstance = null;
         private static GKResourceManager fResourceManager;
@@ -135,7 +135,7 @@ namespace GKUI
             fAutosaveTimer.Interval = 10 * 60 * 1000;
             fAutosaveTimer.Tick += AutosaveTimer_Tick;
 
-            fBirthDays = new StringList();
+            fTips = new StringList();
 
             //LangMan.SaveDefaultLanguage();
         }
@@ -301,7 +301,15 @@ namespace GKUI
 
         private void Form_Show(object sender, EventArgs e)
         {
-            ReloadRecentBases();
+            try {
+                BeginLoading();
+
+                ReloadRecentBases();
+
+                ProcessHolidays();
+            } finally {
+                EndLoading();
+            }
         }
 
         private void Form_Resize(object sender, EventArgs e)
@@ -442,6 +450,24 @@ namespace GKUI
 
         #region Misc functions
 
+        private string GetLanguageSign()
+        {
+            string lngSign;
+
+            LangRecord lngrec = fOptions.GetLangByCode(fOptions.InterfaceLang);
+            if (lngrec == null) {
+                if (fOptions.InterfaceLang == LangMan.LS_DEF_CODE) {
+                    lngSign = LangMan.LS_DEF_SIGN;
+                } else {
+                    lngSign = string.Empty;
+                }
+            } else {
+                lngSign = lngrec.Sign;
+            }
+
+            return lngSign;
+        }
+
         private static ushort RequestLanguage()
         {
             using (LanguageSelectDlg dlg = new LanguageSelectDlg())
@@ -496,6 +522,21 @@ namespace GKUI
             } catch (Exception ex) {
                 LogWrite("MainWin.LoadLanguage(): " + ex.Message);
             }
+        }
+
+        private void ProcessHolidays()
+        {
+            if (!fOptions.ShowTips) return;
+
+            Holidays holidays = new Holidays();
+
+            // TODO: We need a reference to the country, not the language
+            string lngSign = GetLanguageSign();
+            if (!string.IsNullOrEmpty(lngSign)) {
+                holidays.Load(GKUtils.GetLangsPath() + "holidays_" + lngSign + ".yaml");
+            }
+
+            holidays.CollectTips(fTips);
         }
 
         public DialogResult ShowModalEx(Form form, bool keepModeless)
@@ -714,13 +755,13 @@ namespace GKUI
 
         public void ShowTips()
         {
-            if (fBirthDays.Count <= 0) return;
+            if (fTips.Count <= 0) return;
 
             fOptions.ShowTips =
                 DayTipsDlg.ShowTipsEx(LangMan.LS(LSID.LSID_BirthDays),
-                                      fOptions.ShowTips, fBirthDays, Handle);
+                                      fOptions.ShowTips, fTips, Handle);
 
-            fBirthDays.Clear();
+            fTips.Clear();
         }
 
         private void BeginLoading()
@@ -753,7 +794,7 @@ namespace GKUI
 
             if (fileName != "" && File.Exists(fileName)) {
                 result.FileLoad(fileName);
-                result.CollectTips(fBirthDays);
+                result.CollectTips(fTips);
             } else {
                 result.FileNew();
             }
@@ -1188,18 +1229,8 @@ namespace GKUI
 
         public void ShowHelpTopic(string topic)
         {
-            string lngSign;
-
-            LangRecord lngrec = fOptions.GetLangByCode(fOptions.InterfaceLang);
-            if (lngrec == null) {
-                if (fOptions.InterfaceLang == LangMan.LS_DEF_CODE) {
-                    lngSign = LangMan.LS_DEF_SIGN;
-                } else {
-                    return;
-                }
-            } else {
-                lngSign = lngrec.Sign;
-            }
+            string lngSign = GetLanguageSign();
+            if (string.IsNullOrEmpty(lngSign)) return;
 
             string helpPath = GKUtils.GetHelpPath(lngSign);
 
