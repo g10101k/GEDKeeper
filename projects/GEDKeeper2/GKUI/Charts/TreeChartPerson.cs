@@ -57,7 +57,7 @@ namespace GKUI.Charts
         private GEDCOMSex fSex;
         private PersonList fChilds;
         private PersonList fSpouses;
-        private Bitmap fPortrait;
+        private Image fPortrait;
         private int fPortraitWidth;
 
         // for rendering
@@ -83,7 +83,7 @@ namespace GKUI.Charts
         public ExtRect PortraitArea;
 
 
-        public Bitmap Portrait
+        public Image Portrait
         {
             get { return fPortrait; }
         }
@@ -212,7 +212,9 @@ namespace GKUI.Charts
         protected override void Dispose(bool disposing)
         {
             if (disposing) {
-                if (fPortrait != null) fPortrait.Dispose();
+                // don't dispose portrait - he's from cache!
+                //if (fPortrait != null) fPortrait.Dispose();
+
                 if (fChilds != null) fChilds.Dispose();
                 if (fSpouses != null) fSpouses.Dispose();
             }
@@ -319,7 +321,9 @@ namespace GKUI.Charts
                     if (fChart.Options.PortraitsVisible) {
                         try
                         {
-                            fPortrait = fChart.Base.Context.GetPrimaryBitmap(iRec, -1, -1, true);
+                            //fPortrait = fChart.Base.Context.GetPrimaryBitmap(iRec, -1, -1, true);
+                            fPortrait = PortraitsCache.Instance.GetImage(fChart.Base.Context, iRec);
+
                             if (fPortrait == null && fChart.Options.DefaultPortraits) {
                                 fPortrait = (fSex == GEDCOMSex.svFemale) ? GKResources.piFemale140 : GKResources.piMale140;
                             }

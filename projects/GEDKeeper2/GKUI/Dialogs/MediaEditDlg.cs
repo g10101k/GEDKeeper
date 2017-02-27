@@ -77,6 +77,8 @@ namespace GKUI.Dialogs
             CommitChanges();
             fBase.ChangeRecord(fMediaRec);
 
+            PortraitsCache.Instance.RemoveObsolete(fMediaRec);
+
             return true;
         }
 
