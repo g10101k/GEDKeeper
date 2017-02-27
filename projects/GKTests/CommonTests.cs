@@ -757,6 +757,54 @@ namespace GKTests.GKCommon
         }
 
         [Test]
+        public void BBCodes_Parse_Tests()
+        {
+            StringTokenizer strTok = new StringTokenizer("alpha beta 123  456.57, x [b]bold text[/b] qq \r\n"
+                                                         +" [url=http://test.com/~user/index.html]url text[/url]");
+            strTok.IgnoreWhiteSpace = false;
+            strTok.RecognizeDecimals = false;
+
+            string result = "";
+
+            Token tok = strTok.Next();
+            while (tok.Kind != TokenKind.EOF) {
+                if (tok.Kind == TokenKind.Symbol && tok.Value == "[") {
+                    tok = strTok.Next();
+
+                    // closed tag
+                    if (tok.Kind == TokenKind.Symbol && tok.Value == "/") {
+                        tok = strTok.Next();
+                    }
+
+                    if (tok.Kind != TokenKind.Word) throw new Exception("not tag");
+                    string tag = tok.Value;
+
+                    tok = strTok.Next();
+
+                    if (tag == "url") {
+                        if (tok.Kind == TokenKind.Symbol && tok.Value == "=") {
+                            tok = strTok.Next();
+                            string url = "";
+                            do {
+                                url += tok.Value;
+                                tok = strTok.Next();
+                            } while (tok.Kind != TokenKind.Symbol || tok.Value != "]");
+
+                            Assert.AreEqual("http://test.com/~user/index.html", url);
+                        }
+                    }
+                    if (tok.Kind != TokenKind.Symbol || tok.Value != "]") throw new Exception("not bracket");
+                } else {
+                    result += tok.Value;
+                }
+
+                tok = strTok.Next();
+            }
+
+            Assert.AreEqual("alpha beta 123  456.57, x bold text qq \r\n url text", result);
+        }
+
+        [Test]
         public void StringTokenizer_Tests()
         {
             Assert.Throws(typeof(ArgumentNullException), () => { new StringTokenizer(null); });
@@ -907,8 +955,11 @@ namespace GKTests.GKCommon
 
             //
 
-            uint days = SysUtils.DaysBetween(new DateTime(1990, 10, 10), new DateTime(1990, 10, 13));
+            int days = SysUtils.DaysBetween(new DateTime(1990, 10, 10), new DateTime(1990, 10, 13));
             Assert.AreEqual(3, days);
+
+            days = SysUtils.DaysBetween(new DateTime(1990, 10, 10), new DateTime(1990, 10, 02));
+            Assert.AreEqual(-8, days);
 
             Assert.AreEqual(31, SysUtils.DaysInAMonth(1990, 5));
 

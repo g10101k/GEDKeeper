@@ -26,7 +26,6 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-using Externals;
 using GKCommon;
 using GKCommon.Controls;
 using GKCommon.GEDCOM;
@@ -39,6 +38,7 @@ using GKCore.Tools;
 using GKCore.Types;
 using GKUI.Controls;
 using GKUI.Dialogs;
+using GKUI.Forms;
 
 namespace GKUI
 {
@@ -1014,6 +1014,7 @@ namespace GKUI
             {
                 try
                 {
+                    bool firstTip = true;
                     int num = fTree.RecordsCount;
                     for (int i = 0; i < num; i++)
                     {
@@ -1022,30 +1023,38 @@ namespace GKUI
 
                         GEDCOMIndividualRecord iRec = (GEDCOMIndividualRecord) rec;
 
-                        uint days;
+                        int days;
                         if (GKUtils.GetDaysForBirth(iRec, out days))
                         {
                             string nm = GKUtils.GetNameString(iRec, true, false);
                             nm = fContext.Culture.GetPossessiveName(nm);
 
-                            if (0 == days)
-                            {
-                                tipsList.Add(string.Format(
-                                    LangMan.LS(LSID.LSID_BirthdayToday),
-                                    nm));
-                            }
-                            else if (1 == days)
-                            {
-                                tipsList.Add(string.Format(
-                                    LangMan.LS(
-                                        LSID.LSID_BirthdayTomorrow),
-                                    nm));
-                            }
-                            else if (3 > days)
-                            {
-                                tipsList.Add(string.Format(
-                                    LangMan.LS(LSID.LSID_DaysRemained),
-                                    nm, days));
+                            if (days >= 0 && 3 > days) {
+                                string tip;
+
+                                if (firstTip) {
+                                    tipsList.Add("#" + LangMan.LS(LSID.LSID_BirthDays));
+                                    firstTip = false;
+                                }
+
+                                if (0 == days)
+                                {
+                                    tip = string.Format(
+                                        LangMan.LS(LSID.LSID_BirthdayToday), nm);
+                                }
+                                else if (1 == days)
+                                {
+                                    tip = string.Format(
+                                        LangMan.LS(LSID.LSID_BirthdayTomorrow), nm);
+                                }
+                                else
+                                {
+                                    tip = string.Format(
+                                        LangMan.LS(LSID.LSID_DaysRemained),
+                                        nm, days);
+                                }
+
+                                tipsList.Add(tip);
                             }
                         }
                     }

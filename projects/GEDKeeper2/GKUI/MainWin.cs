@@ -456,11 +456,12 @@ namespace GKUI
 
             LangRecord lngrec = fOptions.GetLangByCode(fOptions.InterfaceLang);
             if (lngrec == null) {
-                if (fOptions.InterfaceLang == LangMan.LS_DEF_CODE) {
+                /*if (fOptions.InterfaceLang == LangMan.LS_DEF_CODE) {
                     lngSign = LangMan.LS_DEF_SIGN;
                 } else {
                     lngSign = string.Empty;
-                }
+                }*/
+                lngSign = LangMan.LS_DEF_SIGN;
             } else {
                 lngSign = lngrec.Sign;
             }
@@ -1536,13 +1537,18 @@ namespace GKUI
             if (sender == null)
                 return null;
 
-            CultureInfo cultInfo = new CultureInfo(fOptions.InterfaceLang);
-            string ext = cultInfo.ThreeLetterISOLanguageName;
+            //CultureInfo cultInfo = new CultureInfo(fOptions.InterfaceLang);
+            //string ext = cultInfo.ThreeLetterISOLanguageName;
+            string lngSign = GetLanguageSign();
 
             Assembly asm = sender.GetType().Assembly;
             Module[] mods = asm.GetModules();
             string asmFile = mods[0].FullyQualifiedName;
-            string langFile = Path.ChangeExtension(asmFile, "." + ext);
+
+            string langFile = Path.ChangeExtension(asmFile, "." + lngSign);
+            if (!File.Exists(langFile)) {
+                langFile = Path.ChangeExtension(asmFile, "." + LangMan.LS_DEF_SIGN);
+            }
 
             LangManager langMan = new LangManager();
             bool res = langMan.LoadFromFile(langFile);
@@ -1593,9 +1599,7 @@ namespace GKUI
 
         public string GetAppDataPath()
         {
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + GKData.APP_TITLE + Path.DirectorySeparatorChar;
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            return path;
+            return GKUtils.GetAppDataPath();
         }
 
         private WidgetInfo FindWidgetInfo(IWidget widget)

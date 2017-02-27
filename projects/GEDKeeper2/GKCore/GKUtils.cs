@@ -916,7 +916,7 @@ namespace GKCore
         /// method failed, the caller must ignore value of the
         /// <paramref name="distance" />.</returns>
         public static bool GetDaysForBirth(GEDCOMIndividualRecord iRec,
-                                           out uint distance)
+                                           out int distance)
         {
             distance = 0;
             bool result = false;
@@ -981,16 +981,13 @@ namespace GKCore
         /// <returns>Number of days remained until the birthday of
         /// the <paramref name="iRec" />. On any error the method returns empty
         /// string.</returns>
-        public static string GetDaysForBirth(GEDCOMIndividualRecord iRec)
+        public static object GetDaysForBirth(GEDCOMIndividualRecord iRec)
         {
-            uint distance;
-            if (GetDaysForBirth(iRec, out distance))
-            {
-                return Convert.ToString(distance);
-            }
-            else
-            {
-                return string.Empty;
+            int distance;
+            if (GetDaysForBirth(iRec, out distance) && distance >= 0) {
+                return (object)distance;
+            } else {
+                return null;
             }
         }
 
@@ -1438,6 +1435,20 @@ namespace GKCore
         {
             string homePath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             return homePath + Path.DirectorySeparatorChar;
+        }
+
+        public static string GetAppDataPath()
+        {
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + GKData.APP_TITLE + Path.DirectorySeparatorChar;
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            return path;
+        }
+
+        public static string GetCachePath()
+        {
+            string path = GetAppDataPath() + "imagecache" + Path.DirectorySeparatorChar;
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            return path;
         }
 
         #endregion
@@ -2678,6 +2689,39 @@ namespace GKCore
                 default:
                     return MultimediaKind.mkNone;
             }
+        }
+
+        public static MediaStoreType GetStoreType(GEDCOMFileReference fileReference)
+        {
+            if (fileReference == null)
+                throw new ArgumentNullException("fileReference");
+
+            string fileRef = fileReference.StringValue;
+
+            MediaStoreType result;
+            if (fileRef.IndexOf(GKData.GKStoreTypes[2].Sign) == 0) {
+                result = MediaStoreType.mstArchive;
+            } else if (fileRef.IndexOf(GKData.GKStoreTypes[1].Sign) == 0) {
+                result = MediaStoreType.mstStorage;
+            } else {
+                result = MediaStoreType.mstReference;
+            }
+            return result;
+        }
+
+        public static MediaStoreType GetStoreType(GEDCOMFileReference fileReference, ref string fileName)
+        {
+            if (fileReference == null)
+                throw new ArgumentNullException("fileReference");
+
+            fileName = fileReference.StringValue;
+            MediaStoreType result = GetStoreType(fileReference);
+
+            if (result != MediaStoreType.mstReference) {
+                fileName = fileName.Remove(0, 4);
+            }
+
+            return result;
         }
 
         #endregion
