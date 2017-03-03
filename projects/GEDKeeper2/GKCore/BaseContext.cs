@@ -1010,11 +1010,7 @@ namespace GKCore
             try
             {
                 GEDCOMMultimediaLink mmLink = iRec.GetPrimaryMultimediaLink();
-                if (mmLink != null && mmLink.Value != null)
-                {
-                    GEDCOMMultimediaRecord mmRec = (GEDCOMMultimediaRecord)mmLink.Value;
-                    result = mmRec.UID;
-                }
+                result = GEDCOMUtils.GetMultimediaLinkUID(mmLink);
             }
             catch (Exception ex)
             {
@@ -1113,22 +1109,29 @@ namespace GKCore
                     // dummy for future
                 }
 
-                DESCryptoServiceProvider cryptic = new DESCryptoServiceProvider();
-
                 byte[] pwd = Encoding.Unicode.GetBytes(password);
                 byte[] salt = SCCrypt.CreateRandomSalt(7);
 
                 PasswordDeriveBytes pdb = new PasswordDeriveBytes(pwd, salt);
-                cryptic.Key = pdb.CryptDeriveKey("DES", "SHA1", cryptic.KeySize, cryptic.IV);
 
-                using (CryptoStream crStream = new CryptoStream(fileStream, cryptic.CreateDecryptor(), CryptoStreamMode.Read))
-                {
-                    fTree.LoadFromStreamExt(fileStream, crStream, fileName);
+                try {
+                    using (DESCryptoServiceProvider cryptic = new DESCryptoServiceProvider()) {
+                        cryptic.Key = pdb.CryptDeriveKey("DES", "SHA1", cryptic.KeySize, cryptic.IV);
+
+                        using (CryptoStream crStream = new CryptoStream(fileStream, cryptic.CreateDecryptor(), CryptoStreamMode.Read))
+                        {
+                            fTree.LoadFromStreamExt(fileStream, crStream, fileName);
+                        }
+
+                        SCCrypt.ClearBytes(pwd);
+                        SCCrypt.ClearBytes(salt);
+                    }
+                } finally {
+                    // The project is mainly compiled under .NET 3.0,
+                    // where these objects are simple, but in .NET 4.x they disposable
+                    var pdbDisp = pdb as IDisposable;
+                    if (pdbDisp != null) pdbDisp.Dispose();
                 }
-
-                SCCrypt.ClearBytes(pwd);
-                SCCrypt.ClearBytes(salt);
-                cryptic.Clear();
             }
         }
 
@@ -1141,24 +1144,31 @@ namespace GKCore
                 gsHeader[7] = GS_MINOR_VER;
                 fileStream.Write(gsHeader, 0, 8);
 
-                DESCryptoServiceProvider cryptic = new DESCryptoServiceProvider();
-
                 byte[] pwd = Encoding.Unicode.GetBytes(password);
                 byte[] salt = SCCrypt.CreateRandomSalt(7);
 
                 PasswordDeriveBytes pdb = new PasswordDeriveBytes(pwd, salt);
-                cryptic.Key = pdb.CryptDeriveKey("DES", "SHA1", cryptic.KeySize, cryptic.IV);
 
-                using (CryptoStream crStream = new CryptoStream(fileStream, cryptic.CreateEncryptor(), CryptoStreamMode.Write))
-                {
-                    GKUtils.PrepareHeader(fTree, fileName, charSet, false);
-                    fTree.SaveToStreamExt(crStream, fileName, charSet);
-                    crStream.Flush();
+                try {
+                    using (DESCryptoServiceProvider cryptic = new DESCryptoServiceProvider()) {
+                        cryptic.Key = pdb.CryptDeriveKey("DES", "SHA1", cryptic.KeySize, cryptic.IV);
+
+                        using (CryptoStream crStream = new CryptoStream(fileStream, cryptic.CreateEncryptor(), CryptoStreamMode.Write))
+                        {
+                            GKUtils.PrepareHeader(fTree, fileName, charSet, false);
+                            fTree.SaveToStreamExt(crStream, fileName, charSet);
+                            crStream.Flush();
+                        }
+
+                        SCCrypt.ClearBytes(pwd);
+                        SCCrypt.ClearBytes(salt);
+                    }
+                } finally {
+                    // The project is mainly compiled under .NET 3.0,
+                    // where these objects are simple, but in .NET 4.x they disposable
+                    var pdbDisp = pdb as IDisposable;
+                    if (pdbDisp != null) pdbDisp.Dispose();
                 }
-
-                SCCrypt.ClearBytes(pwd);
-                SCCrypt.ClearBytes(salt);
-                cryptic.Clear();
             }
         }
 

@@ -475,10 +475,10 @@ namespace GKTests.GKCore
             Assert.IsFalse(GKUtils.IsRecordAccess(GEDCOMRestriction.rnPrivacy, ShieldState.Maximum));
 
             st1 = GKUtils.HyperLink("@X001@", "test", 0);
-            Assert.AreEqual("~^" + "@X001@" + ":" + "test" + "~", st1);
+            Assert.AreEqual("[url=" + "@X001@" + "]" + "test" + "[/url]", st1);
 
             st1 = GKUtils.HyperLink("@X001@", "", 0);
-            Assert.AreEqual("~^" + "@X001@" + ":" + "???" + "~", st1);
+            Assert.AreEqual("[url=" + "@X001@" + "]" + "???" + "[/url]", st1);
 
             //
 
@@ -1925,6 +1925,14 @@ namespace GKTests.GKCore
             } catch (Exception ex) {
                 Assert.Fail();
             }
+        }
+
+        [Test]
+        public void PortraitsCache_Tests()
+        {
+            PortraitsCache cache = PortraitsCache.Instance;
+            Assert.IsNull(cache.GetImage(null, null));
+            cache.RemoveObsolete(null);
         }
     }
 }
