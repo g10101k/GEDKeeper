@@ -30,6 +30,7 @@
         {
             this.gkComboBox1 = new GKCommon.Controls.GKComboBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // gkComboBox1
@@ -38,7 +39,7 @@
             this.gkComboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.gkComboBox1.FormattingEnabled = true;
             this.gkComboBox1.Location = new System.Drawing.Point(9, 10);
-            this.gkComboBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.gkComboBox1.Margin = new System.Windows.Forms.Padding(2);
             this.gkComboBox1.Name = "gkComboBox1";
             this.gkComboBox1.Size = new System.Drawing.Size(218, 21);
             this.gkComboBox1.TabIndex = 0;
@@ -53,19 +54,32 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.Button1_Click);
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(640, 8);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(114, 61);
+            this.button2.TabIndex = 2;
+            this.button2.Text = "button2";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.Button2Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(766, 477);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.gkComboBox1);
             this.Name = "MainForm";
             this.Text = "GKSandbox";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainFormFormClosed);
             this.ResumeLayout(false);
+
         }
         private System.Windows.Forms.Button button1;
         private GKCommon.Controls.GKComboBox gkComboBox1;
+        private System.Windows.Forms.Button button2;
     }
 }

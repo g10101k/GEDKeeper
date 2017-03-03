@@ -97,6 +97,7 @@ namespace GKMediaPlayer
         private void Events_MediaEnded(object sender, EventArgs e)
         {
             UISync.Execute(InitControls);
+            btnStop_Click(null, null); // For set default image 
         }
 
         private void Events_TimeChanged(object sender, MediaPlayerTimeChanged e)

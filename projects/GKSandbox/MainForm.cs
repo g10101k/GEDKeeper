@@ -33,5 +33,9 @@ namespace GKSandbox
                 frm.ShowDialog();
             }
         }
+        private void Button2Click(object sender, EventArgs e)
+        {
+            
+        }
     }
 }
